@@ -1,0 +1,249 @@
+#!/usr/bin/python3
+
+import os
+import sys
+from datetime import datetime
+import subprocess
+from time import sleep
+
+# cores
+RED = "\033[1;31m"
+BLUE = "\033[1;34m"
+CYAN = "\033[1;36m"
+GREEN = "\033[0;32m"
+RESET = "\033[0;0m"
+BOLD = "\033[;1m"
+REVERSE = "\033[;7m"
+
+def banner():
+	os.system("clear")
+	print(GREEN + '''
+		:::::::::       :::      :::         ::::::::::  ::::    :::  :::::::::: 
+		:+:    :+:    :+: :+:    :+:         :+:         :+:+:   :+:  :+:        
+		+:+    +:+   +:+   +:+   +:+         +:+         :+:+:+  +:+  +:+        
+		+#+    +:+  +#++:++#++:  +#+         +#++:++#    +#+ +:+ +#+  +#++:++#   
+		+#+    +#+  +#+     +#+  +#+         +#+         +#+  +#+#+#  +#+        
+		#+#    #+#  #+#     #+#  #+#         #+#         #+#   #+#+#  #+#        
+		#########   ###     ###  ##########  ##########  ###    ####  ########## ''' + RESET)
+	print(RED + """
+
+						   
+							https://www.linkedin.com/in/fellipmelo/
+							https://github.com/fellipmelo/
+							
+
+	""")
+	print('')
+	print('')
+	sleep(5)
+banner()
+
+
+# pega o valor da data e hora
+data_e_hora_atuais = datetime.now()
+data_e_hora_em_texto = data_e_hora_atuais.strftime('%d/%m/%Y %H:%M')
+
+# pega o nome do arquivo log monitor
+
+log_monitoramento = input(GREEN+"""
+	Escolha o caminho do arquivo de LOGs
+	Default [/var/log/monitoramento.log]: """)
+if log_monitoramento == '':
+	log_monitoramento= '/var/log/monitoramento.log'
+else:
+	log_monitoramento = log_monitoramento
+
+
+
+# checa se arquivo log monitor existe
+if os.path.isfile(log_monitoramento) == True:
+	prosseguir_log_monitoramento = input(RED+"Possui um arquivo de log em "+log_monitoramento+" deseja substituir ¿ [s/n]")
+	if prosseguir_log_monitoramento == 's':
+		os.system('echo "" > %s'%(log_monitoramento))
+	elif prosseguir_log_monitoramento == 'n':
+		sys.exit()
+else:
+	os.system('echo "" >%s'%(log_monitoramento))
+
+
+# monitor de eventos suspeitos
+
+log_evento = input(GREEN+"""
+	Escolha o caminho do arquivo de LOGs de EVENTOS
+	Default [/var/log/eventos.log]: """)
+if log_evento == '':
+	log_evento= '/var/log/eventos.log'
+else:
+	log_evento = log_evento
+
+
+
+# checa se arquivo log Evento existe
+if os.path.isfile(log_evento) == True:
+	prosseguir_log_evento = input(RED+"Possui um arquivo de log EVENTOS em "+log_evento+" deseja substituir ¿ [s/n]")
+	if prosseguir_log_evento == 's':
+		os.system('echo "" > %s'%(log_evento))
+	elif prosseguir_log_evento == 'n':
+		sys.exit()
+else:
+	os.system('echo "" >%s'%(log_evento))
+
+
+# caminhos e tipo a ser monitorados
+dirs = []
+assistir = []
+while True:
+
+
+	dirs.append(input(GREEN+"""
+		Caminho/Arquivo a ser monitorado
+		Ex: [/etc/passwd]: """))
+
+	
+
+	assistir.append(input(GREEN+"""
+		[IN_ACCESS,IN_MODIFY,IN_ATTRIB,IN_CLOSE_WRITE,IN_CLOSE_NOWRITE,IN_OPEN,IN_MOVED_FROM,IN_MOVED_TO,IN_CREATE,
+		IN_DELETE,IN_DELETE_SELF,IN_CLOSE,IN_MOVE,IN_ONESHOT,IN_ALL_EVENTS,IN_DONT_FOLLOW,IN_ONLYDIR,IN_MOVE_SELF]
+
+		Ex: IN_ACCESS,IN_DELETE
+		Metodos monitoramento: """))
+
+	continua_add = input(GREEN+"""\nAdicionar mais diretorios/arquivos para monitoramento ? [s/n]: """)
+	if continua_add == 's' or continua_add == '':
+		continue
+	elif continua_add == 'n':
+		break
+	else: 
+		print("Erro caminhos a ser monitorado")
+
+### move o arquivo monitor
+os.system("mv monitor /etc/")
+
+##### cria arquivo executa logs
+horas_shellscript = """`date +%d/%m/%Y' - '%H:%M:%S`"""
+watchp_conf = '#!/bin/bash\necho -e "%s | Caminho: $1 | Acao: $2 | Arquivo: $3" >> %s ; python /etc/monitor'%(horas_shellscript, log_monitoramento)
+watchp = open('/etc/watchpolitico.sh', 'w')
+watchp.write(watchp_conf)
+watchp.close()
+exec_perm_watch= 'chmod +755 /etc/watchpolitico.sh'
+subprocess.call([exec_perm_watch], shell=True)
+
+#### criar file conf9582
+# limpa caso ja tiver algo escrito
+conf_file = open("/etc/politico.conf", "w")
+conf_file.close()
+
+
+x = 0
+qta_dirs_e_assistir = len(dirs)
+
+
+while(x < qta_dirs_e_assistir):
+
+	conf_file = open("/etc/politico.conf", "a")
+
+	conf_dados_dirs = '{0} {1} /etc/watchpolitico.sh $@ $% $# \n'.format(dirs[x], assistir[x])
+	conf_file.write(conf_dados_dirs)
+
+	conf_file.close()
+	
+	x+=1
+
+
+executa_incron= 'cp /etc/politico.conf //var/spool/incron/root'
+subprocess.call([executa_incron], shell=True)
+
+##### wordlist de nomes suspeitos
+
+wordlist_padrao=["php", "pHp", "pHp5", "pHp7", "elf", "py", "pyc", ".sh", ".perl", ".aspx"]
+
+
+##### colher nomes suspeitos
+
+d_adicionar_nomes=input("""
+	Wordlist Padrao\n %s \n
+	Deseja adicionar proprias variaveis suspeitas ? [s/n]: """%(wordlist_padrao))
+
+if d_adicionar_nomes == "s":
+
+	wordlist_padrao=[]
+
+
+	while True:
+
+		variavel_add = input(GREEN+"""
+			Finalizar digite: [parar]
+			Variaveis a serem adicionadas:  """)
+
+		if variavel_add == "parar":
+
+			break
+		else:
+			wordlist_padrao.append(variavel_add)
+			print(wordlist_padrao)
+
+
+
+elif d_adicionar_nomes == "n":
+	wordlist_padrao=["php", "pHp", "pHp5", "pHp7", "elf", "py", "pyc", ".sh", ".perl", ".aspx"]
+	pass
+else:
+	print("Erro ao adicionar")
+	sys.exit()
+
+
+##### comandos a ser executado apos identificar algo suspeito
+#
+
+deseja=input("\nDeseja executar comandos apos identificar variaveis suspeitas? [s/n]")
+
+if deseja == "n":
+	evento_system=open("/etc/monitor", "r")
+	evento_conf=evento_system.read()
+	evento_system.close()
+
+	wd = os.popen('echo "comandos="%s').read()%("w")
+	evento_system=open("/etc/monitor", "w")
+	wd_full=evento_conf.replace("comandos", wd)
+	evento_system.write(wd_full)
+
+
+	evento_system.close()
+
+elif deseja == "s":
+
+	comandos=input("$ ")
+
+	evento_system=open("/etc/monitor", "r")
+	evento_conf=evento_system.read()
+	evento_system.close()
+
+	wd = "'{0}'".format(comandos)
+	evento_system=open("/etc/monitor", "w")
+	wd_full=evento_conf.replace("comandos", wd)
+	evento_system.write(wd_full)
+
+
+	evento_system.close()
+
+else:
+	pass
+
+#######  criar arquivo analisa EVENTOS
+# pega codigo para leitura
+evento_system=open("/etc/monitor", "r")
+evento_conf=evento_system.read()
+evento_system.close()
+
+#escreve as mudancas e wordlist
+
+wd = os.popen('echo "wordlist="%s').read()%(wordlist_padrao)
+evento_system=open("/etc/monitor", "w")
+wd_full=evento_conf.replace("wordlist_padrao", wd)
+evento_system.write(wd_full)
+
+
+evento_system.close()
+
+print("\nFinalizado.")
+

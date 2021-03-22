@@ -1,0 +1,36 @@
+#!/usr/bin/python3
+
+import os
+import sys
+from datetime import datetime
+
+data_e_hora_atuais = datetime.now()
+data_e_hora_em_texto = data_e_hora_atuais.strftime('%d/%m/%Y %H:%M')
+
+log = open("/var/log/monitoramento.log", "r")
+
+dados = log.read()
+
+log.close()
+
+wordlist_padrao
+
+
+x=0
+
+while (x < len(wordlist)):
+
+    if wordlist[x] in dados:
+    	dados_wordlist = wordlist[x]
+        os.system("echo '{0} - Verificar arquivo | Possivel Anomalia | Origem: {1}' >> /var/log/eventos.log".format(data_e_hora_em_texto, wordlist[x]))
+        os.system(comandos)
+        x+=1
+
+        parametro = dados_wordlist.swapcase()
+        log_altera = open("/var/log/monitoramento.log", "w")
+        dados_altera = dados.replace(dados_wordlist, parametro)
+        log_altera.write(dados_altera)
+        log_altera.close()
+    else:
+        x+=1
+
