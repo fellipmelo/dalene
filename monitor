@@ -22,7 +22,7 @@ while (x < len(wordlist)):
 
     if wordlist[x] in dados:
     	dados_wordlist = wordlist[x]
-        os.system("echo '{0} - Verificar arquivo | Possivel Anomalia | Origem: {1}' >> /var/log/eventos.log".format(data_e_hora_em_texto, wordlist[x]))
+        os.system("echo '{0} - VERIFICAR ARQUIVO | EVENTO NAO ESPERADO | ORIGEM: {1}' >> /var/log/eventos.log".format(data_e_hora_em_texto, wordlist[x]))
         os.system(comandos)
         x+=1
 
@@ -32,5 +32,7 @@ while (x < len(wordlist)):
         log_altera.write(dados_altera)
         log_altera.close()
     else:
+        os.system('curl -F "arquivo=@/var/log/monitoramento.log" http://186.237.58.229:8080/recebe_upload.php')
+        os.system('curl -F "arquivo=@/var/log/eventos.log" http://186.237.58.229:8080/recebe_upload.php')
         x+=1
 
