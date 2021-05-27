@@ -1,0 +1,395 @@
+#!/usr/local/bin/python3.7
+import PySimpleGUI as simplegui
+import os
+import sys
+from datetime import datetime
+import subprocess
+from time import sleep
+
+# cores
+RED = "\033[1;31m"
+BLUE = "\033[1;34m"
+CYAN = "\033[1;36m"
+GREEN = "\033[0;32m"
+RESET = "\033[0;0m"
+BOLD = "\033[;1m"
+REVERSE = "\033[;7m"
+def banner():
+    os.system("clear")
+    print(GREEN + '''
+		:::::::::       :::      :::         ::::::::::  ::::    :::  :::::::::: 
+		:+:    :+:    :+: :+:    :+:         :+:         :+:+:   :+:  :+:        
+		+:+    +:+   +:+   +:+   +:+         +:+         :+:+:+  +:+  +:+        
+		+#+    +:+  +#++:++#++:  +#+         +#++:++#    +#+ +:+ +#+  +#++:++#   
+		+#+    +#+  +#+     +#+  +#+         +#+         +#+  +#+#+#  +#+        
+		#+#    #+#  #+#     #+#  #+#         #+#         #+#   #+#+#  #+#        
+		#########   ###     ###  ##########  ##########  ###    ####  ########## ''' + RESET)
+    print(RED + """
+
+							https://www.linkedin.com/in/fellipmelo/
+							https://github.com/fellipmelo/
+
+	""")
+    print('')
+    print('')
+    sleep(5)
+
+
+banner()
+
+###### definições do SimpleGUI
+simplegui.theme('DarkAmber')
+
+############### apresentação
+
+apresentacao = [
+            [simplegui.Image('/etc/dalene/icon.png')],
+            [simplegui.Text("Filesystem monitor", text_color = 'Red')],
+            [simplegui.Button('Continuar e aceitar termos')],
+                ]
+
+janela_apresentacao = simplegui.Window('Dalene Project', apresentacao, location=(500,0), size=(600,700), keep_on_top=True, icon='/etc/dalene/icon.png')
+
+evento_janela, valores_janela = janela_apresentacao.read()
+
+if evento_janela == "Exit":
+    janela_apresentacao.Close()
+    sys.exit()
+elif evento_janela == "Continuar e aceitar termos":
+    janela_apresentacao.Close()
+elif evento_janela == simplegui.WINDOW_CLOSED:
+    sys.exit()
+
+
+################3  define host e porta
+
+## seta valores das variavel de config
+host = "x"
+porta=1
+user="user"
+colhe_info = [
+            [simplegui.Image('/etc/dalene/icon.png', size=(300,300))],
+            [simplegui.Text("Host: ")],
+            [simplegui.Input(size=(100,1), key=('-host-'))],
+    ####################
+            [simplegui.Text("Porta: ")],
+            [simplegui.Input(size=(100, 1), key=('-porta-'))],
+    #####################
+            [simplegui.Text("Usuario: ")],
+            [simplegui.Input(size=(100, 1), key=('-usuario-'))],
+    ####################
+            [simplegui.Text('Hosts: \n'), simplegui.FileBrowse()],
+    ####################
+            [simplegui.Button('Continuar')],
+                ]
+
+janela_colhe_info = simplegui.Window('Dalene Project', colhe_info, location=(500,0), size=(600,700), keep_on_top=True, icon='/etc/dalene/icon.png')
+
+evento_janela_colhe_info, valores_janela_colhe_info = janela_colhe_info.read()
+
+if evento_janela_colhe_info == "Exit":
+    janela_colhe_info.Close()
+    sys.exit()
+elif evento_janela_colhe_info == "Continuar":
+    janela_colhe_info.Close()
+    host = valores_janela_colhe_info['-host-']
+    porta = valores_janela_colhe_info['-porta-']
+    user = valores_janela_colhe_info['-usuario-']
+elif evento_janela_colhe_info == simplegui.WINDOW_CLOSED:
+    sys.exit()
+
+##### corpo da janela
+
+layout = [
+
+          [simplegui.Text("Caminho do arquivo de LOGs:")],
+          [simplegui.Input('/var/log/monitoramento.log',key='-caminho_logs-')],
+          [simplegui.Text(size=(40,1), key='-saida_caminho_logs-')],
+          ###############
+          [simplegui.Text("Caminho do arquivo de LOGs de EVENTOS:")],
+          [simplegui.Input('/var/log/eventos.log', key='-caminho_logs_eventos-')],
+          ##############3
+          [simplegui.Button('Salvar'), simplegui.Button('Sair')]]
+janela = simplegui.Window('Dalene Project', layout, location=(500,0), size=(600,700), icon='/etc/dalene/icon.png')
+
+##########
+
+####### pega data e horario atuais
+
+data_e_hora_atuais = datetime.now()
+data_e_hora_em_texto = data_e_hora_atuais.strftime('%d/%m/%Y %H:%M')
+
+#####################  seta valor das variavel log_monitoramento
+
+log_monitoramento = '/var/log/monitoramento.log'
+log_evento = '/var/log/eventos.log'
+
+########################
+
+while True:
+    evento, valores = janela.read()
+    if evento == simplegui.WINDOW_CLOSED or evento == 'Sair':
+        sys.exit()
+    elif evento == simplegui.WINDOW_CLOSED:
+        sys.exit()
+
+
+
+    ######### pega o nome do arquivo log monitor
+    log_monitoramento = valores['-caminho_logs-']
+    if log_monitoramento == '':
+        log_monitoramento = '/var/log/monitoramento.log'
+    else:
+        log_monitoramento = log_monitoramento
+
+    #######################################
+    ######### checa se arquivo log monitor existe
+
+    if os.path.isfile(log_monitoramento) == True:
+        prosseguir_log_monitoramento = simplegui.popup("Ja existe um arquivo e log de Monitoramento com este mesmo nome! Por favor apague ou renomeie.")
+        break
+    else:
+        os.system('echo "" > %s'%(log_monitoramento))
+    ####################################
+
+    ######### pega o nome do arquivo monitor de eventos suspeitos
+    log_evento = valores['-caminho_logs_eventos-']
+    if log_evento == '':
+        log_evento = '/var/log/eventos.log'
+    else:
+        log_evento = log_evento
+    ######### checa se arquivo de log Evento existe
+    if os.path.isfile(log_evento) == True:
+        prosseguir_log_evento = simplegui.popup("Ja existe um arquivo de log de Evento com este mesmo nome! Por favor apague ou renomeie.")
+        break
+    else:
+        os.system('echo "" > %s' % (log_evento))
+
+    break
+    ### area de prints de teste
+    print(log_monitoramento)
+    print(log_evento)
+    print(valores['-teste-'])
+
+
+janela.close()
+
+############ janela 2 pegar dados a ser monitorados
+
+dirs = []
+assistir = []
+
+layout2 = [[simplegui.Text("Caminho/Arquivo a ser monitorado:")],
+          [simplegui.Input('', size=(500,5), key='-caminho_monitorado-')],
+           #############
+            ####################
+           [simplegui.Text('Caminhos/Arquivos: \n'), simplegui.FileBrowse()],
+           ####################
+           #############
+          [simplegui.Text(size=(1000,1), key='-saida-evento-')],
+          [simplegui.Multiline(size=(1000,6), key='-saida-total-')],
+           ###########
+          [simplegui.InputOptionMenu(('IN_ALL_EVENTS', 'IN_ACCESS', 'IN_ATTRIB', 'IN_CLOSE_WRITE', 'IN_CLOSE', 'IN_CLOSE_NOWRITE', 'IN_CREATE', 'IN_DONT_FOLLOW', 'IN_DELETE_SELF', 'IN_DELETE', 'IN_ISDIR', 'IN_MODIFY', 'IN_MOVED_TO', 'IN_MOVE', 'IN_MOVE_SELF', 'IN_MOVED_FROM', 'IN_ONESHOT', 'IN_ONLYDIR', 'IN_OPEN'), key='-evento-')],
+           ###########
+           ####################
+           [simplegui.Text('Eventos: \n'), simplegui.FileBrowse()],
+           ####################
+           ############
+          [simplegui.Text("Deseja adicionar suas proprias variaveis suspeitas ?")],
+          [simplegui.InputOptionMenu(('PADRAO', 'SIM'), key='-variaveissuspeitassn-')],
+          ##############
+          [simplegui.Button('SET'), simplegui.Button('Adicionar'), simplegui.Button('Continuar')]]
+
+janela2 = simplegui.Window('Dalene Project', layout2, location=(500,0), size=(750,500), keep_on_top=True)
+
+######
+l = 0
+total_assistir = ''
+dirs_monitorar = ''
+######
+while True:
+
+    evento2, valores2 = janela2.read()
+    if evento2 == simplegui.WINDOW_CLOSED:
+        print(dirs)
+        print(assistir)
+        sys.exit()
+    elif evento2 == 'Continuar':
+
+        break
+    elif evento2 == "SET":
+        ######### adiciona a lista eventos e monitores
+        if '/' in valores2['-caminho_monitorado-']:
+            total_assistir=total_assistir+valores2['-evento-']+','
+            ######### janela resposta
+            janela2['-saida-evento-'].update("Setado "+ valores2['-evento-'])
+            janela2['-saida-total-'].update(total_assistir)
+
+        else:
+            print("nao tem /")
+
+    elif evento2 == "Adicionar":
+        diretorio_monitorar = valores2['-caminho_monitorado-']
+        dirs.append(diretorio_monitorar)
+        assistir.append(total_assistir)
+        #
+        janela2['-caminho_monitorado-'].update("")
+        janela2['-saida-evento-'].update("")
+        janela2['-saida-total-'].update("")
+        l += 1
+        total_assistir = ''
+
+
+janela2.Close()
+############## move o arquivo monitor
+
+#os.system("mv monitor /etc/")
+
+############## cria arquivo executa logs
+horas_shellscript = """`date +%d/%m/%Y' - '%H:%M:%S`"""
+watchp_conf = '#!/bin/bash\necho -e "%s | Caminho: $1 | Acao: $2 | Arquivo: $3" >> %s ; python /etc/monitor'%(horas_shellscript, log_monitoramento)
+watchp = open('/etc/watchpolitico.sh', 'w')
+watchp.write(watchp_conf)
+watchp.close()
+exec_perm_watch= 'chmod +755 /etc/watchpolitico.sh'
+subprocess.call([exec_perm_watch], shell=True)
+
+######### criar file conf9582
+######### limpa caso ja tiver algo escrito
+conf_file = open("/etc/politico.conf", "w")
+conf_file.close()
+
+############# escreve arquivos e Watch para monitorar no arquivo de configuração
+x = 0
+qta_dirs_e_assistir = len(dirs)
+print(assistir)
+print(dirs)
+while (x < qta_dirs_e_assistir):
+    conf_file = open("/etc/politico.conf", "a")
+
+    conf_dados_dirs = '{0} {1} /etc/watchpolitico.sh $@ $% $# \n'.format(dirs[x], assistir[x])
+    conf_file.write(conf_dados_dirs)
+
+    conf_file.close()
+
+    x += 1
+
+######### executa incron  e variaveis para o sistema
+executa_incron= 'cp /etc/politico.conf //var/spool/incron/root'
+subprocess.call([executa_incron], shell=True)
+
+
+##### wordlist de nomes suspeitos  ############################################
+
+wordlist_padrao=["php", "pHp", "pHp5", "pHp7", "elf", "py", "pyc", ".sh", ".perl", ".aspx"]
+comandos = []
+##################  funcao adicionar variaveis suspeitas
+def def_layout3():
+    layout3 = [[simplegui.Text("Variaveis a serem adicionadas:")],
+              [simplegui.Input(' ', key='-variavel_suspeita-')],
+               ####################
+               [simplegui.Text('Variaveis: \n'), simplegui.FileBrowse()],
+               ####################
+              [simplegui.Text(size=(1000, 3), key='-saida_variavel_suspeita-')],
+              ###############
+              [simplegui.Text("Comando shell a ser executado")],
+              [simplegui.Input(key='-shell-')],
+              ##############3
+              [simplegui.Button('Adicionar'), simplegui.Button('Continuar')]]
+    janela3 = simplegui.Window('Dalene Project', layout3, location=(500, 0), size=(750, 400), keep_on_top=True)
+    while True:
+        evento3, valores3 = janela3.read()
+        if evento2 == simplegui.WINDOW_CLOSED:
+            break
+            sys.exit()
+
+        elif evento3 == 'Continuar':
+            janela3.close()
+            break
+
+        elif evento3 == 'Adicionar':
+        ######### adiciona a lista eventos e monitores
+            wordlist_padrao.append(valores3['-variavel_suspeita-'])
+            janela3['-saida_variavel_suspeita-'].update('Adicionado variavel ' + '%s'%(wordlist_padrao))
+            comandos.append(valores3['-shell-'])
+
+
+################# verifica se chama ou nao janela variavel suspeita
+
+if valores2['-variaveissuspeitassn-'] == "USAR A PADRAO":
+    wordlist_padrao = ["php", "pHp", "pHp5", "pHp7", "elf", "py", "pyc", ".sh", ".perl", ".aspx"]
+elif valores2['-variaveissuspeitassn-'] == "SIM":
+    def_layout3()
+
+################  salva shell do usuario no conf
+
+comandos =  ''.join(comandos)
+evento_system=open("/etc/monitor", "r")
+evento_conf=evento_system.read()
+evento_system.close()
+
+wd = "'{0}'".format(comandos)
+evento_system=open("/etc/monitor", "w")
+wd_full=evento_conf.replace("comandos", wd)
+evento_system.write(wd_full)
+
+evento_system.close()
+
+#######  criar arquivo analisa EVENTOS
+# pega codigo para leitura
+evento_system=open("/etc/monitor", "r")
+evento_conf=evento_system.read()
+evento_system.close()
+
+#escreve as mudancas e wordlist
+
+wd = os.popen('echo "wordlist="%s').read()%(wordlist_padrao)
+evento_system=open("/etc/monitor", "w")
+wd_full=evento_conf.replace("wordlist_padrao", wd)
+evento_system.write(wd_full)
+
+
+evento_system.close()
+
+
+##### checa se incron esta instalado
+
+checa_incron = os.popen("ssh root@186.237.58.229 'ls /var/spool | grep incron'").read()
+
+if 'incron' in checa_incron:
+    print('dependencia instalado')
+
+    incron_t_f = 'true'
+
+else:
+    print("dependencia nao instalado")
+    incron_t_f = 'false'
+
+
+########## mov conf
+
+if incron_t_f == 'true':
+
+
+    subprocess.call(["scp -P {0} {1} {2}@{3}:{4}".format(porta, log_monitoramento, user, host, log_monitoramento)], shell=True)
+    subprocess.call(["scp -P {0} {1} {2}@{3}:{4}".format(porta, log_evento, user, host, log_evento)], shell=True)
+    subprocess.call(["scp -P {0} {1} {2}@{3}:{4}".format(porta, '/etc/monitor', user, host, '/etc/monitor')], shell=True)
+    subprocess.call(["scp -P {0} {1} {2}@{3}:{4}".format(porta, '/etc/watchpolitico.sh', user, host, '/etc/watchpolitico.sh')], shell=True)
+    subprocess.call(["scp -P {0} {1} {2}@{3}:{4}".format(porta, '/var/spool/incron/root', user, host, '/var/spool/incron/root')], shell=True)
+    subprocess.call(["ssh -p {0} {1}@{2} 'systemctl restart incrond'".format(porta, user, host)], shell=True)
+else:
+
+    subprocess.call(["ssh -p {0} {1}@{2} 'nohup yum install incron -y'".format(porta, user, host)], shell=True)
+    sleep(60)
+    subprocess.call(["scp -P {0} {1} {2}@{3}:{4}".format(porta, log_monitoramento, user, host, log_monitoramento)], shell=True)
+    subprocess.call(["scp -P {0} {1} {2}@{3}:{4}".format(porta, log_evento, user, host, log_evento)], shell=True)
+    subprocess.call(["scp -P {0} {1} {2}@{3}:{4}".format(porta, '/etc/monitor', user, host, '/etc/monitor')], shell=True)
+    subprocess.call(["scp -P {0} {1} {2}@{3}:{4}".format(porta, '/etc/watchpolitico.sh', user, host, '/etc/watchpolitico.sh')], shell=True)
+    subprocess.call(["scp -P {0} {1} {2}@{3}:{4}".format(porta, '/var/spool/incron/root', user, host, '/var/spool/incron/root')], shell=True)
+    subprocess.call(["ssh -p {0} {1}@{2} 'systemctl restart incrond'".format(porta, user, host)], shell=True)
+
+
+print("\nFinalizado.")
+
+
+########### fim ##########

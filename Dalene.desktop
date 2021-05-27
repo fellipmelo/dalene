@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Dalene
+Type=Application
+Exec=sudo /etc/dalene/main.py
+Icon=/etc/dalene/icon.png
+Categories=Network
+Terminal=true

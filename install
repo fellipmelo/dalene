@@ -1,0 +1,12 @@
+#!/usr/local/bin/python3.7
+
+import os
+
+os.system("pip3.7 install -r requerimentos")
+os.system("apt install incron -y")
+os.system("yum install incron -y")
+os.system("mkdir /etc/dalene")
+os.system("cp main.py /etc/dalene")
+os.system("cp Dalene.desktop /usr/share/applications && cp icon.png /etc/dalene/")
+os.system("rm /etc/monitor")
+os.system(" cd /etc/ && wget https://raw.githubusercontent.com/fellipmelo/dalene/main/monitor")
