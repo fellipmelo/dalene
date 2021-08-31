@@ -1,5 +1,6 @@
 # dalene
 Monitorar arquivo/diretórios gerando logs, com respostas a incidentes
+https://youtu.be/XdkSRb1cmIY
 
 Objetivo principal é trazer maior facilidade de implementação e monitoramento de eventos e incidentes de segurança da informação nos servidores
 Utiliza inode do kernel do linux, ou seja, monitora em tempo real, capaz de realizar resposta e gerar log da ação.
